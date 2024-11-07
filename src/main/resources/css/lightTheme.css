@@ -66,12 +66,17 @@
   -fx-border-color: #29292D;
   -fx-text-fill: black;
   -fx-alignment: CENTER_LEFT;
+  -fx-border-width: 0.0;
 
 }
 .table-row-cell:selected {
    -fx-background-color: whitesmoke;
    -fx-text-background-color:  #33FF55;
 
+
+}
+.table-row-cell:filled .cell{
+    -fx-border-width: 0.3;
 
 }
 .table-view:focused .table-row-cell:selected .table-cell {

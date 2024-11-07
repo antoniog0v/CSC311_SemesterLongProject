@@ -2,6 +2,7 @@ package viewmodel;
 
 import dao.DbConnectivityClass;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -30,6 +31,9 @@ import java.util.ResourceBundle;
 public class DB_GUI_Controller implements Initializable {
 
     @FXML
+    Button editButton, deleteButton;
+
+    @FXML
     TextField first_name, last_name, department, major, email, imageURL;
     @FXML
     ImageView img_view;
@@ -46,6 +50,8 @@ public class DB_GUI_Controller implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+
+
         try {
             tv_id.setCellValueFactory(new PropertyValueFactory<>("id"));
             tv_fn.setCellValueFactory(new PropertyValueFactory<>("firstName"));
@@ -54,9 +60,13 @@ public class DB_GUI_Controller implements Initializable {
             tv_major.setCellValueFactory(new PropertyValueFactory<>("major"));
             tv_email.setCellValueFactory(new PropertyValueFactory<>("email"));
             tv.setItems(data);
+
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        editButton.disableProperty().bind(Bindings.isEmpty(tv.getSelectionModel().getSelectedItems()));
+        deleteButton.disableProperty().bind(Bindings.isEmpty(tv.getSelectionModel().getSelectedItems()));
+
     }
 
     @FXML
@@ -150,14 +160,21 @@ public class DB_GUI_Controller implements Initializable {
 
     @FXML
     protected void selectedItemTV(MouseEvent mouseEvent) {
+
         Person p = tv.getSelectionModel().getSelectedItem();
-        first_name.setText(p.getFirstName());
-        last_name.setText(p.getLastName());
-        department.setText(p.getDepartment());
-        major.setText(p.getMajor());
-        email.setText(p.getEmail());
-        imageURL.setText(p.getImageURL());
+        if (p != null) {
+            first_name.setText(p.getFirstName());
+            last_name.setText(p.getLastName());
+            department.setText(p.getDepartment());
+            major.setText(p.getMajor());
+            email.setText(p.getEmail());
+            imageURL.setText(p.getImageURL());
+        } else {
+            System.out.println("Please choose a valid option!");
+        }
     }
+
+
 
     public void lightTheme(ActionEvent actionEvent) {
         try {
