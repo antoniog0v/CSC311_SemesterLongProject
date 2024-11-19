@@ -8,46 +8,46 @@ import service.UserSession;
 
 import java.sql.*;
 public class DbConnectivityClass {
-    final static String DB_NAME="CSC311_BD_TEMP";
-        MyLogger lg= new MyLogger();
-        final static String SQL_SERVER_URL = "jdbc:mysql://villanicsc311server.mysql.database.azure.com";//update this server name
-        final static String DB_URL = SQL_SERVER_URL+"/"+DB_NAME;//update this database name
-        final static String USERNAME = "villaniadmin";// update this username
-        final static String PASSWORD = "farmingdale25!";// update this password
+    final static String DB_NAME = "CSC311_BD_TEMP";
+    MyLogger lg = new MyLogger();
+    final static String SQL_SERVER_URL = "jdbc:mysql://villanicsc311server.mysql.database.azure.com";//update this server name
+    final static String DB_URL = SQL_SERVER_URL + "/" + DB_NAME;//update this database name
+    final static String USERNAME = "villaniadmin";// update this username
+    final static String PASSWORD = "farmingdale25!";// update this password
 
 
-        private final ObservableList<Person> data = FXCollections.observableArrayList();
+    private final ObservableList<Person> data = FXCollections.observableArrayList();
 
-        // Method to retrieve all data from the database and store it into an observable list to use in the GUI tableview.
+    // Method to retrieve all data from the database and store it into an observable list to use in the GUI tableview.
 
 
-        public ObservableList<Person> getData() {
-            connectToDatabase();
-            try {
-                Connection conn = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD);
-                String sql = "SELECT * FROM users ";
-                PreparedStatement preparedStatement = conn.prepareStatement(sql);
-                ResultSet resultSet = preparedStatement.executeQuery();
-                if (!resultSet.isBeforeFirst()) {
-                    lg.makeLog("No data");
-                }
-                while (resultSet.next()) {
-                    int id = resultSet.getInt("id");
-                    String first_name = resultSet.getString("first_name");
-                    String last_name = resultSet.getString("last_name");
-                    String department = resultSet.getString("department");
-                    String major = resultSet.getString("major");
-                    String email = resultSet.getString("email");
-                    String imageURL = resultSet.getString("imageURL");
-                    data.add(new Person(id, first_name, last_name, department, major, email, imageURL));
-                }
-                preparedStatement.close();
-                conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
+    public ObservableList<Person> getData() {
+        connectToDatabase();
+        try {
+            Connection conn = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD);
+            String sql = "SELECT * FROM users ";
+            PreparedStatement preparedStatement = conn.prepareStatement(sql);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (!resultSet.isBeforeFirst()) {
+                lg.makeLog("No data");
             }
-            return data;
+            while (resultSet.next()) {
+                int id = resultSet.getInt("id");
+                String first_name = resultSet.getString("first_name");
+                String last_name = resultSet.getString("last_name");
+                String department = resultSet.getString("department");
+                String major = resultSet.getString("major");
+                String email = resultSet.getString("email");
+                String imageURL = resultSet.getString("imageURL");
+                data.add(new Person(id, first_name, last_name, department, major, email, imageURL));
+            }
+            preparedStatement.close();
+            conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+        return data;
+    }
 
     public void registerUser(UserSession s) {
         try {
@@ -77,77 +77,99 @@ public class DbConnectivityClass {
         }
     }
 
-        public boolean connectToDatabase() {
-            boolean hasRegistredUsers = false;
+    public boolean connectToDatabase() {
+        boolean hasRegistredUsers = false;
 
-            try {
-                Class.forName("com.mysql.cj.jdbc.Driver");
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
 
-                //First, connect to MYSQL server and create the database if not created
-                Connection conn = DriverManager.getConnection(SQL_SERVER_URL, USERNAME, PASSWORD);
-                Statement statement = conn.createStatement();
-                statement.executeUpdate("CREATE DATABASE IF NOT EXISTS "+DB_NAME+"");
-                statement.close();
-                conn.close();
+            //First, connect to MYSQL server and create the database if not created
+            Connection conn = DriverManager.getConnection(SQL_SERVER_URL, USERNAME, PASSWORD);
+            Statement statement = conn.createStatement();
+            statement.executeUpdate("CREATE DATABASE IF NOT EXISTS " + DB_NAME + "");
+            statement.close();
+            conn.close();
 
-                //Second, connect to the database and create the table "users" if cot created
-                conn = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD);
-                statement = conn.createStatement();
-                String sql = "CREATE TABLE IF NOT EXISTS users (" + "id INT( 10 ) NOT NULL PRIMARY KEY AUTO_INCREMENT,"
-                        + "first_name VARCHAR(200) NOT NULL," + "last_name VARCHAR(200) NOT NULL,"
-                        + "department VARCHAR(200),"
-                        + "major VARCHAR(200),"
-                        + "email VARCHAR(200) NOT NULL UNIQUE,"
-                        + "imageURL VARCHAR(200))";
-                statement.executeUpdate(sql);
+            //Second, connect to the database and create the table "users" if cot created
+            conn = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD);
+            statement = conn.createStatement();
+            String sql = "CREATE TABLE IF NOT EXISTS users (" + "id INT( 10 ) NOT NULL PRIMARY KEY AUTO_INCREMENT,"
+                    + "first_name VARCHAR(200) NOT NULL," + "last_name VARCHAR(200) NOT NULL,"
+                    + "department VARCHAR(200),"
+                    + "major VARCHAR(200),"
+                    + "email VARCHAR(200) NOT NULL UNIQUE,"
+                    + "imageURL VARCHAR(200))";
+            statement.executeUpdate(sql);
 
-                //check if we have users in the table users
-                statement = conn.createStatement();
-                ResultSet resultSet = statement.executeQuery("SELECT COUNT(*) FROM users");
+            //check if we have users in the table users
+            statement = conn.createStatement();
+            ResultSet resultSet = statement.executeQuery("SELECT COUNT(*) FROM users");
 
-                if (resultSet.next()) {
-                    int numUsers = resultSet.getInt(1);
-                    if (numUsers > 0) {
-                        hasRegistredUsers = true;
-                    }
+            if (resultSet.next()) {
+                int numUsers = resultSet.getInt(1);
+                if (numUsers > 0) {
+                    hasRegistredUsers = true;
                 }
-
-                statement.close();
-                conn.close();
-
-            } catch (Exception e) {
-                e.printStackTrace();
             }
 
-            return hasRegistredUsers;
+            statement.close();
+            conn.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-        public void queryUserByLastName(String name) {
-            connectToDatabase();
-            try {
-                Connection conn = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD);
-                String sql = "SELECT * FROM users WHERE last_name = ?";
-                PreparedStatement preparedStatement = conn.prepareStatement(sql);
-                preparedStatement.setString(1, name);
+        return hasRegistredUsers;
+    }
 
-                ResultSet resultSet = preparedStatement.executeQuery();
+    public void queryUserByLastName(String name) {
+        connectToDatabase();
+        try {
+            Connection conn = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD);
+            String sql = "SELECT * FROM users WHERE last_name = ?";
+            PreparedStatement preparedStatement = conn.prepareStatement(sql);
+            preparedStatement.setString(1, name);
 
-                while (resultSet.next()) {
-                    int id = resultSet.getInt("id");
-                    String first_name = resultSet.getString("first_name");
-                    String last_name = resultSet.getString("last_name");
-                    String major = resultSet.getString("major");
-                    String department = resultSet.getString("department");
+            ResultSet resultSet = preparedStatement.executeQuery();
 
-                    lg.makeLog("ID: " + id + ", Name: " + first_name + " " + last_name + " "
-                            + ", Major: " + major + ", Department: " + department);
-                }
-                preparedStatement.close();
-                conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
+            while (resultSet.next()) {
+                int id = resultSet.getInt("id");
+                String first_name = resultSet.getString("first_name");
+                String last_name = resultSet.getString("last_name");
+                String major = resultSet.getString("major");
+                String department = resultSet.getString("department");
+
+                lg.makeLog("ID: " + id + ", Name: " + first_name + " " + last_name + " "
+                        + ", Major: " + major + ", Department: " + department);
             }
+            preparedStatement.close();
+            conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+    }
+
+    public UserSession getAccount(String username) {
+        connectToDatabase();
+        try {
+            Connection conn = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD);
+            String sql = "SELECT * FROM accounts WHERE username = ?";
+            PreparedStatement preparedStatement = conn.prepareStatement(sql);
+            preparedStatement.setString(1, username);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.next()) {
+                UserSession s = new UserSession(resultSet.getString("username"), resultSet.getString("password"), resultSet.getString("privileges"));
+                return s;
+            } else {
+                UserSession s = new UserSession("", "", "NONE");
+                return s;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
         public void listAllUsers() {
             connectToDatabase();
