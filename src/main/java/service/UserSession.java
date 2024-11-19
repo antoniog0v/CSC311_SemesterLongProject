@@ -13,7 +13,9 @@ public class UserSession {
     private String password;
     private String privileges;
 
-    private UserSession(String userName, String password, String privileges) {
+
+
+    public UserSession(String userName, String password, String privileges) {
         this.userName = userName;
         this.password = password;
         this.privileges = privileges;
@@ -41,14 +43,17 @@ public class UserSession {
     public String getUserName() {
         return this.userName;
     }
+    public void setUserName(String s){this.userName = s;}
 
     public String getPassword() {
         return this.password;
     }
+    public void setPassword(String s){this.password = s;}
 
     public String getPrivileges() {
         return this.privileges;
     }
+    public void setPrivileges(String s){this.privileges = s;}
 
     public void cleanUserSession() {
         this.userName = "";// or null

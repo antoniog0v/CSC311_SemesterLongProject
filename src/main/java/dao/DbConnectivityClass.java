@@ -4,6 +4,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import model.Person;
 import service.MyLogger;
+import service.UserSession;
 
 import java.sql.*;
 public class DbConnectivityClass {
@@ -48,6 +49,33 @@ public class DbConnectivityClass {
             return data;
         }
 
+    public void registerUser(UserSession s) {
+        try {
+            Connection conn = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD);
+            Statement statement = conn.createStatement();
+            String sql = "CREATE TABLE IF NOT EXISTS accounts (" + "username VARCHAR(200) NOT NULL PRIMARY KEY,"
+                    + "password VARCHAR(200) NOT NULL,"
+                    + "privileges VARCHAR(200))";
+            statement.executeUpdate(sql);
+
+
+            String sql2 = "INSERT INTO accounts (username, password, privileges) VALUES (?, ?, ?)";
+            PreparedStatement preparedStatement = conn.prepareStatement(sql2);
+            preparedStatement.setString(1, s.getUserName());
+            preparedStatement.setString(2, s.getPassword());
+            preparedStatement.setString(3, s.getPrivileges());
+
+            int row = preparedStatement.executeUpdate();
+            statement.close();
+            conn.close();
+            if (row > 0) {
+                System.out.println("Account created successfully");
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
         public boolean connectToDatabase() {
             boolean hasRegistredUsers = false;
