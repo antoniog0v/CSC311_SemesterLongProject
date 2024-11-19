@@ -1,10 +1,15 @@
 package viewmodel;
 
+import com.azure.storage.blob.BlobClient;
 import dao.DbConnectivityClass;
+import dao.StorageUploader;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -22,21 +27,31 @@ import javafx.stage.Stage;
 import model.Person;
 import service.MyLogger;
 
-import java.io.File;
+import java.io.*;
 import java.net.URL;
+import java.nio.file.Files;
 import java.time.LocalDate;
-import java.util.Optional;
-import java.util.ResourceBundle;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class DB_GUI_Controller implements Initializable {
 
     @FXML
-    Button editButton, deleteButton;
+    Button editButton, deleteButton, uploadFileButton, addBtn;
 
+
+    @FXML
+    StorageUploader store = new StorageUploader();
     @FXML
     TextField first_name, last_name, department, major, email, imageURL;
     @FXML
     ImageView img_view;
+    private BooleanProperty[] isValid;
+    @FXML
+    File file;
+    @FXML
+    ProgressBar progressBar;
     @FXML
     MenuBar menuBar;
     @FXML
@@ -47,10 +62,32 @@ public class DB_GUI_Controller implements Initializable {
     private TableColumn<Person, String> tv_fn, tv_ln, tv_department, tv_major, tv_email;
     private final DbConnectivityClass cnUtil = new DbConnectivityClass();
     private final ObservableList<Person> data = cnUtil.getData();
+    private Pattern firstNameRegex = Pattern.compile("^([a-zA-Z]{2,25})");
+    private Pattern lastNameRegex = Pattern.compile("^([a-zA-Z]{2,25})");
+    private Pattern emailRegex = Pattern.compile("([a-zA-z0-9]+)@([a-zA-z0-9]+).([a-zA-z0-9]+)");
+    private Pattern departmentRegex = Pattern.compile("^([a-zA-Z]{2,25})");
+    private Pattern majorRegex = Pattern.compile("^([a-zA-Z]{2,25})");
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        isValid = new BooleanProperty[5];
+        for (int i = 0; i < isValid.length; i++) {
+            isValid[i] = new SimpleBooleanProperty(false);
+        }
+        validateText(first_name, firstNameRegex, "Invalid. Must be between 2-25 characters.", isValid, 0);
+        validateText(last_name, lastNameRegex, "Invalid. Must be between 2-25 characters.", isValid, 1);
+        validateText(email, emailRegex, "Invalid. Must be a valid email address.", isValid, 2);
+        validateText(department, departmentRegex, "Invalid. Must be between 2-25 characters.", isValid, 3);
+        validateText(major, majorRegex, "Invalid. Must be between 2-25 characters.", isValid, 4);
 
+        addBtn.disableProperty().bind(
+                isValid[0].not()
+                        .or(isValid[1].not())
+                        .or(isValid[2].not())
+                        .or(isValid[3].not())
+                        .or(isValid[4].not())
+
+        );
 
         try {
             tv_id.setCellValueFactory(new PropertyValueFactory<>("id"));
@@ -68,6 +105,57 @@ public class DB_GUI_Controller implements Initializable {
         deleteButton.disableProperty().bind(Bindings.isEmpty(tv.getSelectionModel().getSelectedItems()));
 
     }
+    private void validateText(TextField text, Pattern regex, String invalid, BooleanProperty[] b, int index){
+        text.focusedProperty().addListener((observable, notFocused, nowFocused)->{
+            if(!nowFocused){
+                Matcher matcher = regex.matcher(text.getText());
+                if (matcher.matches()) {
+                    b[index].set(true);
+                }else{
+                    b[index].set(false);
+                }
+            }
+        });
+
+
+
+    }
+//    @FXML
+//    protected void onImportCSV() {
+//        FileChooser fileChooser = new FileChooser();
+//        fileChooser.setTitle("Open CSV File");
+//        fileChooser.getExtensionFilters().addAll(
+//                new FileChooser.ExtensionFilter("CSV Files", "*.csv")
+//        );
+//        File f=fileChooser.showOpenDialog(welcomeText.getScene().getWindow());
+//
+//        if (f != null) {
+//
+//
+//            try {
+//                areaText.setText(Arrays.toString(readFile(f.getAbsolutePath())));
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
+//        }
+//    }
+//    public  String[] readFile(String fileName) throws IOException {
+//        FileReader fileReader = new FileReader(fileName);
+//        BufferedReader bufferedReader = new BufferedReader(fileReader);
+//        List<String> lines = new ArrayList<String>();
+//        String line = null;
+//        while ((line = bufferedReader.readLine()) != null) {
+//            lines.add(line +"\n");
+//        }
+//        bufferedReader.close();
+//        return lines.toArray(new String[lines.size()]);
+//    }
+//
+//    //ths method return the data to be written in a file
+//    public String[] getData(){
+//        return areaText.getText().split(",");
+//    }
+
 
     @FXML
     protected void addNewRecord() {
@@ -150,6 +238,9 @@ public class DB_GUI_Controller implements Initializable {
         File file = (new FileChooser()).showOpenDialog(img_view.getScene().getWindow());
         if (file != null) {
             img_view.setImage(new Image(file.toURI().toString()));
+            Task<Void> uploadTask = createUploadTask(file, progressBar);
+            progressBar.progressProperty().bind(uploadTask.progressProperty());
+            new Thread(uploadTask).start();
         }
     }
 
@@ -157,6 +248,7 @@ public class DB_GUI_Controller implements Initializable {
     protected void addRecord() {
         showSomeone();
     }
+
 
     @FXML
     protected void selectedItemTV(MouseEvent mouseEvent) {
@@ -230,6 +322,36 @@ public class DB_GUI_Controller implements Initializable {
                     results.fname + " " + results.lname + " " + results.major);
         });
     }
+    private Task<Void> createUploadTask(File file, ProgressBar progressBar) {
+        return new Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                BlobClient blobClient = store.getContainerClient().getBlobClient(file.getName());
+                long fileSize = Files.size(file.toPath());
+                long uploadedBytes = 0;
+
+                try (FileInputStream fileInputStream = new FileInputStream(file);
+                     OutputStream blobOutputStream = blobClient.getBlockBlobClient().getBlobOutputStream()) {
+
+                    byte[] buffer = new byte[1024 * 1024]; // 1 MB buffer size
+                    int bytesRead;
+
+                    while ((bytesRead = fileInputStream.read(buffer)) != -1) {
+                        blobOutputStream.write(buffer, 0, bytesRead);
+                        uploadedBytes += bytesRead;
+
+                        // Calculate and update progress as a percentage
+                        int progress = (int) ((double) uploadedBytes / fileSize * 100);
+                        updateProgress(progress, 100);
+                    }
+                }
+
+                return null;
+            }
+
+        };
+    }
+
 
     private static enum Major {Business, CSC, CPIS}
 
@@ -244,6 +366,8 @@ public class DB_GUI_Controller implements Initializable {
             this.lname = date;
             this.major = venue;
         }
+
+
     }
 
 }
