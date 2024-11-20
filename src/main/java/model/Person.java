@@ -98,6 +98,7 @@ public class Person {
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", department='" + department + '\'' +
+                ", imageURL='" + imageURL + '\'' +
                 ", major='" + major + '\'' +
                 ", email='" + email + '\'' +
                 '}';

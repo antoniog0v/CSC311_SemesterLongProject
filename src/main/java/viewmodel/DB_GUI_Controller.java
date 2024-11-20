@@ -377,7 +377,8 @@ public class DB_GUI_Controller implements Initializable {
                     System.out.println(selectedPerson.getImageURL() + " This is the image URL from createUploadTask");
                     imageURL.setText(fileURL);
                     img_view.setImage(new Image(fileURL));
-
+                    System.out.println(selectedPerson);
+                    cnUtil.editUser(selectedPerson.getId(),selectedPerson);
                 }
 
 

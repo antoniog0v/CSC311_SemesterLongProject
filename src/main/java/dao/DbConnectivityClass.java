@@ -98,7 +98,7 @@ public class DbConnectivityClass {
                     + "department VARCHAR(200),"
                     + "major VARCHAR(200),"
                     + "email VARCHAR(200) NOT NULL UNIQUE,"
-                    + "imageURL VARCHAR(200))";
+                    + "imageURL VARCHAR(500))";
             statement.executeUpdate(sql);
 
             //check if we have users in the table users
