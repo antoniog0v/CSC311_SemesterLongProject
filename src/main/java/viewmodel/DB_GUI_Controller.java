@@ -40,6 +40,7 @@ public class DB_GUI_Controller implements Initializable {
     @FXML
     Button editButton, deleteButton, uploadFileButton, addBtn;
 
+    String filename;
 
     @FXML
     StorageUploader store = new StorageUploader();
@@ -236,11 +237,17 @@ public class DB_GUI_Controller implements Initializable {
     @FXML
     protected void showImage() {
         File file = (new FileChooser()).showOpenDialog(img_view.getScene().getWindow());
+
         if (file != null) {
             img_view.setImage(new Image(file.toURI().toString()));
-            Task<Void> uploadTask = createUploadTask(file, progressBar);
-            progressBar.progressProperty().bind(uploadTask.progressProperty());
-            new Thread(uploadTask).start();
+            Person selectedPerson = tv.getSelectionModel().getSelectedItem();
+            if(selectedPerson!=null) {
+                Task<Void> uploadTask = createUploadTask(file, progressBar, selectedPerson);
+                progressBar.progressProperty().bind(uploadTask.progressProperty());
+                new Thread(uploadTask).start();
+            }else{
+                System.out.println("Please select a person to upload the image");
+            }
 
         }
     }
@@ -253,7 +260,7 @@ public class DB_GUI_Controller implements Initializable {
 
     @FXML
     protected void selectedItemTV(MouseEvent mouseEvent) {
-
+        String defaultImage = "/images/profile.png";
         Person p = tv.getSelectionModel().getSelectedItem();
         if (p != null) {
             first_name.setText(p.getFirstName());
@@ -262,6 +269,16 @@ public class DB_GUI_Controller implements Initializable {
             major.setText(p.getMajor());
             email.setText(p.getEmail());
             imageURL.setText(p.getImageURL());
+            if (p.getImageURL()!=null&&!p.getImageURL().isEmpty()){
+                try {
+                    img_view.setImage(new Image(p.getImageURL()));
+                }catch (IllegalArgumentException e){
+                    img_view.setImage(new Image(getClass().getResource(defaultImage).toExternalForm()));
+                }
+
+                }else{
+                img_view.setImage(new Image(getClass().getResource(defaultImage).toExternalForm()));
+            }
         } else {
             System.out.println("Please choose a valid option!");
         }
@@ -323,29 +340,46 @@ public class DB_GUI_Controller implements Initializable {
                     results.fname + " " + results.lname + " " + results.major);
         });
     }
-    private Task<Void> createUploadTask(File file, ProgressBar progressBar) {
+    private Task<Void> createUploadTask(File file, ProgressBar progressBar, Person selectedPerson) {
         return new Task<>() {
             @Override
             protected Void call() throws Exception {
-                BlobClient blobClient = store.getContainerClient().getBlobClient(file.getName());
+                String SAS = "sp=racwdli&st=2024-11-20T06:49:28Z&se=2025-11-20T14:49:28Z&sv=2022-11-02&sr=c&sig=ezp0WOXIK4xN93tSrTGoOHS%2FuI%2FBL58MvpPohDjKqYg%3D";
+                String blobName = file.getName();
                 long fileSize = Files.size(file.toPath());
                 long uploadedBytes = 0;
+                BlobClient blobClient = store.getContainerClient().getBlobClient(file.getName());
 
-                try (FileInputStream fileInputStream = new FileInputStream(file);
-                     OutputStream blobOutputStream = blobClient.getBlockBlobClient().getBlobOutputStream()) {
-
+                try (FileInputStream fileInputStream = new FileInputStream(file)){
+                    blobClient.upload(fileInputStream, fileSize, true);
                     byte[] buffer = new byte[1024 * 1024]; // 1 MB buffer size
                     int bytesRead;
 
                     while ((bytesRead = fileInputStream.read(buffer)) != -1) {
-                        blobOutputStream.write(buffer, 0, bytesRead);
+//                        blobOutputStream.write(buffer, 0, bytesRead);
                         uploadedBytes += bytesRead;
 
                         // Calculate and update progress as a percentage
                         int progress = (int) ((double) uploadedBytes / fileSize * 100);
                         updateProgress(progress, 100);
+
                     }
+
+                    updateProgress(fileSize, fileSize);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    updateMessage("Upload failed.");
+                    return null;
                 }
+                String fileURL = (blobClient.getContainerClient().getBlobClient(blobName).getBlobUrl() + "?" + SAS);
+                if (selectedPerson != null) {
+                    selectedPerson.setImageURL(fileURL);
+                    System.out.println(selectedPerson.getImageURL() + " This is the image URL from createUploadTask");
+                    imageURL.setText(fileURL);
+                    img_view.setImage(new Image(fileURL));
+
+                }
+
 
                 return null;
             }

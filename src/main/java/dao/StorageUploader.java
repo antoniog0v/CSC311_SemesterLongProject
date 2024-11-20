@@ -21,7 +21,10 @@ public class StorageUploader {
     public void uploadFile(String filePath, String blobName) {
         BlobClient blobClient = containerClient.getBlobClient(blobName);
         blobClient.uploadFromFile(filePath);
-        System.out.println(filePath);
+    }
+    public String getImageURL(String s){
+        String r = (mediaFileUrl+s);
+        return r;
     }
     public BlobContainerClient getContainerClient(){
         return containerClient;
