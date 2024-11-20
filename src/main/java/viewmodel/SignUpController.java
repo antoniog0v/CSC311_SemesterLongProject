@@ -71,10 +71,18 @@ public class SignUpController {
     public void createNewAccount(ActionEvent actionEvent) {
         cd = new DbConnectivityClass();
         String priv = "NONE";
+        String username = usernameField.getText();
+        String password = passwordField.getText();
         UserSession s = new UserSession(usernameField.getText(), passwordField.getText(),priv);
+
         try{
-        cd.registerUser(s);
+            UserSession existingUser = cd.getAccount(s.getUserName());
+        if(existingUser==null) {
+            cd.registerUser(s);
             System.out.println("Account created!");
+        }else{
+            System.out.println("Username is taken! Please choose another");
+        }
         } catch (Exception e) {
             System.out.println("Unable to create account");
             e.printStackTrace();

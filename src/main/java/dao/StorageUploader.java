@@ -7,6 +7,7 @@ import com.azure.storage.blob.BlobContainerClientBuilder;
 
 public class StorageUploader {
 
+    private String mediaFileUrl = ("https://villanicsc311storage.blob.core.windows.net/media-files/");
     private BlobContainerClient containerClient;
     private String ConnectionKey = ("DefaultEndpointsProtocol=https;AccountName=villanicsc311storage;AccountKey=X6ywaGmPMV9Lv7/DM1be5x7oIFQh8EY7v33xA9jykMgOsPekvKXh/zw407+5JA9KjiCPfEiqD+U8+AStxssyIQ==;EndpointSuffix=core.windows.net");
 
@@ -20,6 +21,7 @@ public class StorageUploader {
     public void uploadFile(String filePath, String blobName) {
         BlobClient blobClient = containerClient.getBlobClient(blobName);
         blobClient.uploadFromFile(filePath);
+        System.out.println(filePath);
     }
     public BlobContainerClient getContainerClient(){
         return containerClient;

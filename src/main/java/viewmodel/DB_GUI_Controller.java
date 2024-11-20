@@ -241,6 +241,7 @@ public class DB_GUI_Controller implements Initializable {
             Task<Void> uploadTask = createUploadTask(file, progressBar);
             progressBar.progressProperty().bind(uploadTask.progressProperty());
             new Thread(uploadTask).start();
+
         }
     }
 
