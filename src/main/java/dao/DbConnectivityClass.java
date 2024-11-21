@@ -5,6 +5,7 @@ import javafx.collections.ObservableList;
 import model.Person;
 import service.MyLogger;
 import service.UserSession;
+import viewmodel.DB_GUI_Controller;
 
 import java.sql.*;
 public class DbConnectivityClass {
@@ -36,7 +37,13 @@ public class DbConnectivityClass {
                 String first_name = resultSet.getString("first_name");
                 String last_name = resultSet.getString("last_name");
                 String department = resultSet.getString("department");
-                String major = resultSet.getString("major");
+                String majorString = resultSet.getString("major");
+                DB_GUI_Controller.Major major = null;
+                try {
+                    major = DB_GUI_Controller.Major.valueOf(majorString.toUpperCase());
+                }catch(Exception e){
+                    major = DB_GUI_Controller.Major.Undecided;
+                }
                 String email = resultSet.getString("email");
                 String imageURL = resultSet.getString("imageURL");
                 data.add(new Person(id, first_name, last_name, department, major, email, imageURL));
@@ -208,7 +215,11 @@ public class DbConnectivityClass {
                 preparedStatement.setString(1, person.getFirstName());
                 preparedStatement.setString(2, person.getLastName());
                 preparedStatement.setString(3, person.getDepartment());
-                preparedStatement.setString(4, person.getMajor());
+                if(person.getMajor()!=null) {
+                    preparedStatement.setString(4, person.getMajor().toString());
+                }else{
+                    preparedStatement.setString(4, "Undecided");
+                }
                 preparedStatement.setString(5, person.getEmail());
                 preparedStatement.setString(6, person.getImageURL());
                 int row = preparedStatement.executeUpdate();
@@ -231,7 +242,8 @@ public class DbConnectivityClass {
                 preparedStatement.setString(1, p.getFirstName());
                 preparedStatement.setString(2, p.getLastName());
                 preparedStatement.setString(3, p.getDepartment());
-                preparedStatement.setString(4, p.getMajor());
+                String major = (p.getMajor()!=null?p.getMajor().toString():DB_GUI_Controller.Major.Undecided.toString());
+                preparedStatement.setString(4, major);
                 preparedStatement.setString(5, p.getEmail());
                 preparedStatement.setString(6, p.getImageURL());
                 preparedStatement.setInt(7, id);

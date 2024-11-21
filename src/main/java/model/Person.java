@@ -1,18 +1,21 @@
 package model;
 
+import viewmodel.DB_GUI_Controller;
+
+
 public class Person {
     private Integer id;
     private String firstName;
     private String lastName;
     private String department;
-    private String major;
+    private DB_GUI_Controller.Major major;
     private String email;
     private String imageURL;
 
     public Person() {
     }
 
-    public Person(String firstName, String lastName, String department, String major, String email,  String imageURL) {
+    public Person(String firstName, String lastName, String department, DB_GUI_Controller.Major major, String email, String imageURL) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.department = department;
@@ -21,7 +24,7 @@ public class Person {
         this.imageURL = imageURL;
     }
 
-    public Person(Integer id, String firstName, String lastName, String department, String major, String email,  String imageURL) {
+    public Person(Integer id, String firstName, String lastName, String department, DB_GUI_Controller.Major major, String email, String imageURL) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -66,11 +69,11 @@ public class Person {
     }
 
 
-    public String getMajor() {
+    public DB_GUI_Controller.Major getMajor() {
         return major;
     }
 
-    public void setMajor(String major) {
+    public void setMajor(DB_GUI_Controller.Major major) {
         this.major = major;
     }
 

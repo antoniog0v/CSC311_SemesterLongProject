@@ -41,11 +41,14 @@ public class DB_GUI_Controller implements Initializable {
     Button editButton, deleteButton, uploadFileButton, addBtn;
 
     String filename;
-
+    @FXML
+    MenuItem importCSVbutton, exportCSVbutton;
+    @FXML
+    private ComboBox<Major> majorDropDown;
     @FXML
     StorageUploader store = new StorageUploader();
     @FXML
-    TextField first_name, last_name, department, major, email, imageURL;
+    TextField first_name, last_name, department, email, imageURL;
     @FXML
     ImageView img_view;
     private BooleanProperty[] isValid;
@@ -71,7 +74,9 @@ public class DB_GUI_Controller implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        isValid = new BooleanProperty[5];
+        majorDropDown.getItems().addAll(Major.values());
+        majorDropDown.setValue(Major.Undecided);
+        isValid = new BooleanProperty[4];
         for (int i = 0; i < isValid.length; i++) {
             isValid[i] = new SimpleBooleanProperty(false);
         }
@@ -79,14 +84,12 @@ public class DB_GUI_Controller implements Initializable {
         validateText(last_name, lastNameRegex, "Invalid. Must be between 2-25 characters.", isValid, 1);
         validateText(email, emailRegex, "Invalid. Must be a valid email address.", isValid, 2);
         validateText(department, departmentRegex, "Invalid. Must be between 2-25 characters.", isValid, 3);
-        validateText(major, majorRegex, "Invalid. Must be between 2-25 characters.", isValid, 4);
 
         addBtn.disableProperty().bind(
                 isValid[0].not()
                         .or(isValid[1].not())
                         .or(isValid[2].not())
                         .or(isValid[3].not())
-                        .or(isValid[4].not())
 
         );
 
@@ -106,68 +109,114 @@ public class DB_GUI_Controller implements Initializable {
         deleteButton.disableProperty().bind(Bindings.isEmpty(tv.getSelectionModel().getSelectedItems()));
 
     }
-    private void validateText(TextField text, Pattern regex, String invalid, BooleanProperty[] b, int index){
-        text.focusedProperty().addListener((observable, notFocused, nowFocused)->{
-            if(!nowFocused){
+
+    private void validateText(TextField text, Pattern regex, String invalid, BooleanProperty[] b, int index) {
+        text.focusedProperty().addListener((observable, notFocused, nowFocused) -> {
+            if (!nowFocused) {
                 Matcher matcher = regex.matcher(text.getText());
                 if (matcher.matches()) {
                     b[index].set(true);
-                }else{
+                } else {
                     b[index].set(false);
                 }
             }
         });
 
 
+    }
+
+    @FXML
+    protected void onExportCSV() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save CSV File");
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("CSV Files", "*.csv")
+        );
+
+        File f = fileChooser.showSaveDialog(menuBar.getScene().getWindow());
+
+        if (f != null) {
+            try {
+                writeFile(f.getAbsolutePath(), getData());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+        }
+    }
+    @FXML
+    protected void onImportCSV() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Open CSV File");
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("CSV Files", "*.csv")
+        );
+        File f=fileChooser.showOpenDialog(menuBar.getScene().getWindow());
+
+        if (f != null) {
+            try {
+                readFile(f.getAbsolutePath());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+    public  String[] readFile(String fileName) throws IOException {
+        FileReader fileReader = new FileReader(fileName);
+        BufferedReader bufferedReader = new BufferedReader(fileReader);
+        List<String> lines = new ArrayList<String>();
+        String line = null;
+        while ((line = bufferedReader.readLine()) != null) {
+            lines.add(line +"\n");
+        }
+        bufferedReader.close();
+        return lines.toArray(new String[lines.size()]);
+    }
+
+
+    //This method write into a file using String absolutePath, String[] data
+    // it is called writeFile
+    public void writeFile(String file, String[] data) throws IOException {
+        try {
+            PrintWriter writer;
+            writer = new PrintWriter(file);
+            writer.println(Arrays.toString(data));
+            writer.close();
+        } catch (IOException ex) {
+            System.out.println("Error writing to file '" + file + "'");
+        }
 
     }
-//    @FXML
-//    protected void onImportCSV() {
-//        FileChooser fileChooser = new FileChooser();
-//        fileChooser.setTitle("Open CSV File");
-//        fileChooser.getExtensionFilters().addAll(
-//                new FileChooser.ExtensionFilter("CSV Files", "*.csv")
-//        );
-//        File f=fileChooser.showOpenDialog(welcomeText.getScene().getWindow());
-//
-//        if (f != null) {
-//
-//
-//            try {
-//                areaText.setText(Arrays.toString(readFile(f.getAbsolutePath())));
-//            } catch (IOException e) {
-//                throw new RuntimeException(e);
-//            }
-//        }
-//    }
-//    public  String[] readFile(String fileName) throws IOException {
-//        FileReader fileReader = new FileReader(fileName);
-//        BufferedReader bufferedReader = new BufferedReader(fileReader);
-//        List<String> lines = new ArrayList<String>();
-//        String line = null;
-//        while ((line = bufferedReader.readLine()) != null) {
-//            lines.add(line +"\n");
-//        }
-//        bufferedReader.close();
-//        return lines.toArray(new String[lines.size()]);
-//    }
-//
-//    //ths method return the data to be written in a file
-//    public String[] getData(){
-//        return areaText.getText().split(",");
-//    }
-
+    //ths method return the data to be written in a file
+    public String[] getData() {
+        StringBuilder tvData = new StringBuilder();
+        for (Person person : data) { // For each person in the TableView
+            tvData.append(person.getFirstName()).append(",")
+                    .append(person.getLastName()).append(",")
+                    .append(person.getDepartment()).append(",")
+                    .append(person.getMajor().toString()).append(",")
+                    .append(person.getEmail()).append(",")
+                    .append(person.getImageURL()).append(",");
+        }
+        return tvData.toString().split("");
+    }
 
     @FXML
     protected void addNewRecord() {
 
+        Major selectedMajor = majorDropDown.getValue();
+        if (selectedMajor != null) {
             Person p = new Person(first_name.getText(), last_name.getText(), department.getText(),
-                    major.getText(), email.getText(), imageURL.getText());
+                    selectedMajor, email.getText(), imageURL.getText());
+            System.out.println(p.getMajor());
             cnUtil.insertUser(p);
             cnUtil.retrieveId(p);
             p.setId(cnUtil.retrieveId(p));
             data.add(p);
             clearForm();
+        } else {
+            throw new IllegalArgumentException("Please select a major");
+        }
 
     }
 
@@ -176,7 +225,7 @@ public class DB_GUI_Controller implements Initializable {
         first_name.setText("");
         last_name.setText("");
         department.setText("");
-        major.setText("");
+        // major.setText("");
         email.setText("");
         imageURL.setText("");
     }
@@ -215,10 +264,11 @@ public class DB_GUI_Controller implements Initializable {
 
     @FXML
     protected void editRecord() {
+        Major selectedMajor = majorDropDown.getValue();
         Person p = tv.getSelectionModel().getSelectedItem();
         int index = data.indexOf(p);
         Person p2 = new Person(index + 1, first_name.getText(), last_name.getText(), department.getText(),
-                major.getText(), email.getText(),  imageURL.getText());
+                selectedMajor, email.getText(), imageURL.getText());
         cnUtil.editUser(p.getId(), p2);
         data.remove(p);
         data.add(index, p2);
@@ -241,11 +291,11 @@ public class DB_GUI_Controller implements Initializable {
         if (file != null) {
             img_view.setImage(new Image(file.toURI().toString()));
             Person selectedPerson = tv.getSelectionModel().getSelectedItem();
-            if(selectedPerson!=null) {
+            if (selectedPerson != null) {
                 Task<Void> uploadTask = createUploadTask(file, progressBar, selectedPerson);
                 progressBar.progressProperty().bind(uploadTask.progressProperty());
                 new Thread(uploadTask).start();
-            }else{
+            } else {
                 System.out.println("Please select a person to upload the image");
             }
 
@@ -266,24 +316,23 @@ public class DB_GUI_Controller implements Initializable {
             first_name.setText(p.getFirstName());
             last_name.setText(p.getLastName());
             department.setText(p.getDepartment());
-            major.setText(p.getMajor());
+            majorDropDown.setValue(p.getMajor());
             email.setText(p.getEmail());
             imageURL.setText(p.getImageURL());
-            if (p.getImageURL()!=null&&!p.getImageURL().isEmpty()){
+            if (p.getImageURL() != null && !p.getImageURL().isEmpty()) {
                 try {
                     img_view.setImage(new Image(p.getImageURL()));
-                }catch (IllegalArgumentException e){
+                } catch (IllegalArgumentException e) {
                     img_view.setImage(new Image(getClass().getResource(defaultImage).toExternalForm()));
                 }
 
-                }else{
+            } else {
                 img_view.setImage(new Image(getClass().getResource(defaultImage).toExternalForm()));
             }
         } else {
             System.out.println("Please choose a valid option!");
         }
     }
-
 
 
     public void lightTheme(ActionEvent actionEvent) {
@@ -325,7 +374,7 @@ public class DB_GUI_Controller implements Initializable {
                 FXCollections.observableArrayList(Major.values());
         ComboBox<Major> comboBox = new ComboBox<>(options);
         comboBox.getSelectionModel().selectFirst();
-        dialogPane.setContent(new VBox(8, textField1, textField2,textField3, comboBox));
+        dialogPane.setContent(new VBox(8, textField1, textField2, textField3, comboBox));
         Platform.runLater(textField1::requestFocus);
         dialog.setResultConverter((ButtonType button) -> {
             if (button == ButtonType.OK) {
@@ -340,6 +389,7 @@ public class DB_GUI_Controller implements Initializable {
                     results.fname + " " + results.lname + " " + results.major);
         });
     }
+
     private Task<Void> createUploadTask(File file, ProgressBar progressBar, Person selectedPerson) {
         return new Task<>() {
             @Override
@@ -350,7 +400,7 @@ public class DB_GUI_Controller implements Initializable {
                 long uploadedBytes = 0;
                 BlobClient blobClient = store.getContainerClient().getBlobClient(file.getName());
 
-                try (FileInputStream fileInputStream = new FileInputStream(file)){
+                try (FileInputStream fileInputStream = new FileInputStream(file)) {
                     blobClient.upload(fileInputStream, fileSize, true);
                     byte[] buffer = new byte[1024 * 1024]; // 1 MB buffer size
                     int bytesRead;
@@ -378,7 +428,7 @@ public class DB_GUI_Controller implements Initializable {
                     imageURL.setText(fileURL);
                     img_view.setImage(new Image(fileURL));
                     System.out.println(selectedPerson);
-                    cnUtil.editUser(selectedPerson.getId(),selectedPerson);
+                    cnUtil.editUser(selectedPerson.getId(), selectedPerson);
                 }
 
 
@@ -389,7 +439,12 @@ public class DB_GUI_Controller implements Initializable {
     }
 
 
-    private static enum Major {Business, CSC, CPIS}
+    public static enum Major {
+        Undecided, BUS, CS, CPIS, PSY, MTH, EGL, ECO, SOC, IT, SE
+
+
+        }
+
 
     private static class Results {
 
@@ -405,5 +460,6 @@ public class DB_GUI_Controller implements Initializable {
 
 
     }
+
 
 }
