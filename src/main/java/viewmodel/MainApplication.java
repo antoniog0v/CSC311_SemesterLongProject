@@ -14,7 +14,7 @@ public class MainApplication extends Application {
 
     private static Scene scene;
     private static DbConnectivityClass cnUtil;
-    private Stage primaryStage;
+    public static Stage primaryStage;
 
     public static void main(String[] args) {
         cnUtil = new DbConnectivityClass();

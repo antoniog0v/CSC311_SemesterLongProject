@@ -24,6 +24,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import model.Person;
 import service.MyLogger;
@@ -35,6 +36,8 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static viewmodel.MainApplication.primaryStage;
 
 public class DB_GUI_Controller implements Initializable {
 
@@ -63,6 +66,8 @@ public class DB_GUI_Controller implements Initializable {
     private TableView<Person> tv;
     @FXML
     private TableColumn<Person, Integer> tv_id;
+    @FXML
+    Label reportLabel;
     @FXML
     private TableColumn<Person, String> tv_fn, tv_ln, tv_department, tv_major, tv_email;
     private final DbConnectivityClass cnUtil = new DbConnectivityClass();
@@ -246,6 +251,7 @@ public class DB_GUI_Controller implements Initializable {
             p.setId(cnUtil.retrieveId(p));
             data.add(p);
             clearForm();
+            reportLabel.setText("User successfully \nadded!");
         } else {
             throw new IllegalArgumentException("Please select a major");
         }
@@ -287,11 +293,15 @@ public class DB_GUI_Controller implements Initializable {
     @FXML
     protected void displayAbout() {
         try {
+
             Parent root = FXMLLoader.load(getClass().getResource("/view/about.fxml"));
             Stage stage = new Stage();
             Scene scene = new Scene(root, 600, 500);
             stage.setScene(scene);
+            stage.initModality(Modality.WINDOW_MODAL);
+            stage.initOwner(primaryStage);
             stage.showAndWait();
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -309,6 +319,7 @@ public class DB_GUI_Controller implements Initializable {
         data.remove(p);
         data.add(index, p2);
         tv.getSelectionModel().select(index);
+        reportLabel.setText("User successfully \nedited!");
     }
 
     //Deletes the selected record
@@ -319,6 +330,7 @@ public class DB_GUI_Controller implements Initializable {
         cnUtil.deleteRecord(p);
         data.remove(index);
         tv.getSelectionModel().select(index);
+        reportLabel.setText("User successfully \ndeleted!");
     }
 
     //Shows the image that is currently uploaded to a specific User. Sets the image by getting the URL from the

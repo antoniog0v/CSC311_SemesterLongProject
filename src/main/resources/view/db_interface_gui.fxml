@@ -73,6 +73,11 @@
                                 </ImageView>
                             </children>
                         </AnchorPane>
+                  <Label fx:id="reportLabel" prefHeight="139.0" prefWidth="103.0">
+                     <VBox.margin>
+                        <Insets left="10.0" />
+                     </VBox.margin>
+                  </Label>
                     </children>
                 </VBox>
             </left>
