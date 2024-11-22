@@ -50,6 +50,10 @@
 
 }
 
+.label{
+    -fx-text-fill: white;
+}
+
 
 .menu_bar .label{
     -fx-background-color: black;

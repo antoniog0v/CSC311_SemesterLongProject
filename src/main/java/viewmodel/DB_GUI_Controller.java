@@ -46,7 +46,7 @@ public class DB_GUI_Controller implements Initializable {
 
     String filename;
     @FXML
-    MenuItem importCSVbutton, exportCSVbutton,editItem, clearItem, deleteItem;
+    MenuItem importCSVbutton, exportCSVbutton,editItem, clearItem, deleteItem, copyItem;
     @FXML
     private ComboBox<Major> majorDropDown;
     @FXML
@@ -87,6 +87,8 @@ public class DB_GUI_Controller implements Initializable {
         deleteItem.setOnAction(e->deleteRecord());
         clearItem.setOnAction(e->clearForm());
         editItem.setOnAction(e->editRecord());
+        copyItem.setOnAction(e->duplicateRecord());
+
         tv.setOnKeyPressed(e->{
                 if(e.isControlDown()&&e.getCode()== KeyCode.D) {
                     deleteRecord();
@@ -99,6 +101,11 @@ public class DB_GUI_Controller implements Initializable {
         tv.setOnKeyPressed(e->{
             if (e.isControlDown() && e.getCode() == KeyCode.R) {
                 clearForm();
+            }
+        });
+        tv.setOnKeyPressed(e->{
+            if (e.isControlDown()&&e.getCode()==KeyCode.C){
+                duplicateRecord();
             }
         });
         isValid = new BooleanProperty[4];
@@ -235,6 +242,23 @@ public class DB_GUI_Controller implements Initializable {
         }
         System.out.println(tvData);
         return tvData.toArray(new String[0]);
+    }
+    //Method for duplicating selected person from ObservableList. You can use CTRL+C or "Copy" from the Edit menu.
+    @FXML
+    protected void duplicateRecord(){
+        Person selectedPerson=tv.getSelectionModel().getSelectedItem();
+        if(selectedPerson!=null){
+            Major selectedPersonMajor = selectedPerson.getMajor();
+            String newEmail = selectedPerson.getEmail()+"m";
+            Person duplicate = new Person(first_name.getText(), last_name.getText(), department.getText(),
+                    selectedPersonMajor, newEmail, imageURL.getText());
+            cnUtil.insertUser(duplicate);
+            duplicate.setId(cnUtil.retrieveId(duplicate));
+            data.add(duplicate);
+            reportLabel.setText("User successfully \nduplicated!\nPlease modify the\nemail, as there \ncan't be \nduplicates!");
+
+        }
+
     }
 
     // Adds a new record to the TableView and Azure Database
