@@ -84,30 +84,27 @@ public class DB_GUI_Controller implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         majorDropDown.getItems().addAll(Major.values());
         majorDropDown.setValue(Major.Undecided);
-        deleteItem.setOnAction(e->deleteRecord());
+        deleteItem.setOnAction(e->deleteSelectedRecord());
         clearItem.setOnAction(e->clearForm());
         editItem.setOnAction(e->editRecord());
         copyItem.setOnAction(e->duplicateRecord());
 
+        //All the key shortcuts for the MenuItems in Edit
         tv.setOnKeyPressed(e->{
-                if(e.isControlDown()&&e.getCode()== KeyCode.D) {
-                    deleteRecord();
-                }});
-        tv.setOnKeyPressed(e->{
-            if (e.isControlDown() && e.getCode() == KeyCode.E) {
-                editRecord();
+            if(e.isControlDown()){
+                if(e.getCode()==KeyCode.D) {
+                    deleteSelectedRecord();
+                } else if (e.getCode() == KeyCode.E) {
+                    tv.requestFocus();
+                    editRecord();
+                }else if (e.getCode()==KeyCode.R) {
+                    clearForm();
+                }else if (e.getCode()==KeyCode.C){
+                    duplicateRecord();
+                }
             }
         });
-        tv.setOnKeyPressed(e->{
-            if (e.isControlDown() && e.getCode() == KeyCode.R) {
-                clearForm();
-            }
-        });
-        tv.setOnKeyPressed(e->{
-            if (e.isControlDown()&&e.getCode()==KeyCode.C){
-                duplicateRecord();
-            }
-        });
+
         isValid = new BooleanProperty[4];
         for (int i = 0; i < isValid.length; i++) {
             isValid[i] = new SimpleBooleanProperty(false);
@@ -260,7 +257,17 @@ public class DB_GUI_Controller implements Initializable {
         }
 
     }
-
+    @FXML
+    protected void deleteSelectedRecord(){
+        Person selectedPerson=tv.getSelectionModel().getSelectedItem();
+        if(selectedPerson!=null){
+            int index = data.indexOf(selectedPerson);
+            cnUtil.deleteRecord(selectedPerson);
+            data.remove(selectedPerson);
+            tv.getSelectionModel().select(index);
+            reportLabel.setText("User successfully \ndeleted!");
+        }
+    }
     // Adds a new record to the TableView and Azure Database
     @FXML
     protected void addNewRecord() {
