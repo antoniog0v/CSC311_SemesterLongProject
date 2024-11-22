@@ -49,6 +49,8 @@ public class LoginController {
                 new BackgroundPosition(Side.LEFT, 0, true, Side.BOTTOM, 0, true),
                 new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, true, true, false, true));
     }
+
+    //Login functionality. Checks the entered username/password and if they match with an account in the database, allows you to sign in.
     @FXML
     public void login(ActionEvent actionEvent) {
         try {
@@ -74,7 +76,7 @@ public class LoginController {
             e.printStackTrace();
         }
     }
-
+//Takes you to the signup screen
     public void signUp(ActionEvent actionEvent) {
         try {
             Parent root = FXMLLoader.load(getClass().getResource("/view/signUp.fxml"));

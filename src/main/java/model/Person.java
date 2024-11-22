@@ -3,6 +3,10 @@ package model;
 import viewmodel.DB_GUI_Controller;
 
 
+//Person class. This is the blueprint for the data that is inserted into the database.
+//Major is of type Major from the DB_GUI_Controller class, which allows the user to utilize the ComboBox for
+//Major selection
+
 public class Person {
     private Integer id;
     private String firstName;
@@ -14,6 +18,9 @@ public class Person {
 
     public Person() {
     }
+
+
+   //All the constructors. Keep in mind that major is a type from the combobox
 
     public Person(String firstName, String lastName, String department, DB_GUI_Controller.Major major, String email, String imageURL) {
         this.firstName = firstName;
@@ -34,9 +41,13 @@ public class Person {
         this.imageURL = imageURL;
     }
 
+
+    //All the setters and getters. Keep in mind that major is a type from the ComboBox
+
     public String getEmail() {
         return email;
     }
+
 
     public void setEmail(String email) {
         this.email = email;
@@ -94,6 +105,7 @@ public class Person {
         this.imageURL = imageURL;
     }
 
+   //toString override for displaying all person information
     @Override
     public String toString() {
         return "Person{" +

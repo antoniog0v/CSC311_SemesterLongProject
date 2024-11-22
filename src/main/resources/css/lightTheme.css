@@ -1,5 +1,5 @@
 .db_btn {
-    -fx-background-color: #a73;
+    -fx-background-color: #4bc7e3;
     -fx-cursor: hand;
     -fx-font-family: "Arial";
     -fx-font-size: 15px;
@@ -12,7 +12,7 @@
 }
 
 .left_pane {
-    -fx-background-color: #a73;
+    -fx-background-color: #4bc7e3;
     -fx-pref-width: 130px;
     -fx-pref-height: 600px;
 }
@@ -28,15 +28,15 @@
 
 
 .menu_bar {
-    -fx-background-color: #841;
+    -fx-background-color: #0481e0;
 }
 
 .anchor_pane {
-    -fx-background-color: #a73;
+    -fx-background-color: #4bc7e3;
 }
 
 .text_field_pane {
-    -fx-background-color: #79dc05;
+    -fx-background-color: #7f7ff5;
 
 }
 
@@ -46,12 +46,16 @@
     -fx-border-width: 2;
 }
 
+.combo-box{
+    -fx-background-color: white;
+}
+
 
 
 
 .table-view .column-header,
 .table-view .column-header-background .filler {
-    -fx-background-color:  #999999;
+    -fx-background-color:  #bab2ed;
      -fx-text-fill: black;
 }
 .table-view .column-header .label{

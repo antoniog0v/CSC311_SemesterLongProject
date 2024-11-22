@@ -21,6 +21,7 @@ public class MainApplication extends Application {
         launch(args);
 
     }
+//This happens when application starts. Shows scene 1 (The splash screen)
 
     public void start(Stage primaryStage) {
         Image icon = new Image(getClass().getResourceAsStream("/images/DollarClouddatabase.png"));
@@ -30,7 +31,7 @@ public class MainApplication extends Application {
         primaryStage.setTitle("FSC CSC311 _ Database Project");
         showScene1();
     }
-
+// Shows the first scene (splash screen).
     private void showScene1() {
         try {
             Parent root = FXMLLoader.load(getClass().getResource("/view/splashscreen.fxml"));

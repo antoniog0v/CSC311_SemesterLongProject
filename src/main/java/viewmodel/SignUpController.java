@@ -34,7 +34,8 @@ public class SignUpController {
     @FXML
     Button newAccountBtn;
 
-
+// This initializes all the regex for the username and password. Must be between 2-25 characters, and if the password
+    //reenter field doesn't match the normal password field, it won't let you create an account.
     public void initialize() {
         isValid = new BooleanProperty[2];
         for (int i = 0; i < isValid.length; i++) {
@@ -54,6 +55,8 @@ public class SignUpController {
                         .or(match.not()));
 
     }
+
+    //Passes throguh the String to see if it works with the regex.
     private void validateText(TextField text, Pattern regex, String invalid, BooleanProperty[] b, int index) {
         text.focusedProperty().addListener((observable, notFocused, nowFocused) -> {
             if (!nowFocused) {
@@ -67,7 +70,8 @@ public class SignUpController {
         });
     }
 
-
+// Creates a new account in the database. If it exists already, it will say the username is taken.
+    // Doesn't check password because there's no point in that
     public void createNewAccount(ActionEvent actionEvent) {
         cd = new DbConnectivityClass();
         String priv = "NONE";
@@ -91,7 +95,7 @@ public class SignUpController {
         }
 
 
-
+// Goes back to login screen
     public void goBack(ActionEvent actionEvent) {
         try {
             Parent root = FXMLLoader.load(getClass().getResource("/view/login.fxml"));

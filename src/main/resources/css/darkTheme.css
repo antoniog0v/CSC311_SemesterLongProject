@@ -33,15 +33,29 @@
     -fx-text-fill: #e7e1e1;
 }
 
+.menu-item:hover{
+    -fx-background-color: #7d21ff;
+    -fx-text-fill: white;
 
-.menu_bar{
-    -fx-background-color: black;
 }
+
+.menu-item{
+    -fx-background-color: black;
+    -fx-text-fill: white;
+}
+
+
+.menu-bar{
+   -fx-background-color: black;
+
+}
+
 
 .menu_bar .label{
     -fx-background-color: black;
     -fx-font-size: 15 pt;
-        -fx-text-fill: white;
+    -fx-text-fill: white;
+
 }
 
 .menu_options .label{
@@ -49,12 +63,17 @@
         -fx-text-fill: white;
 
 }
-.menu_items{
+
+.menu {
     -fx-background-color: black;
+    -fx-border-color: black;
 }
+
 .text_field_pane {
     -fx-background-color: #424242;
 }
+
+
 
 .text_field {
     -fx-background-color: black;
@@ -70,12 +89,12 @@
     -fx-stroke: white;
 }
 .table-view:focused .table-row-cell:selected .table-cell {
-    -fx-background-color: lightBlue;
+    -fx-background-color: #1d0342;
     -fx-text-fill: grey;
 }
 .table-view .column-header,
 .table-view .column-header-background .filler {
-    -fx-background-color:  #6622CC;
+    -fx-background-color:  #1d0342;
 }
 .table-view .column-header .label{
    -fx-text-fill: white;
@@ -93,9 +112,21 @@
 }
 .table-row-cell:selected {
    -fx-background-color: whitesmoke;
-   -fx-text-background-color:  #aa22CC;
+   -fx-text-background-color:  #1d0342;
 }
 
+.combo-box{
+    -fx-background-color: black;
+    -fx-border-color: black;
+}
+
+.combo-box .text{
+    -fx-text-fill: lightgray;
+}
+
+.combo-box .list-cell{
+    -fx-text-fill: lightgray;
+}
 /* scroll bar starts here */
 
 /* The increment and decrement button CSS class of scrollbar */

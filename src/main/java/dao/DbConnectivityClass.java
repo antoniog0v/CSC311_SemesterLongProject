@@ -20,8 +20,6 @@ public class DbConnectivityClass {
     private final ObservableList<Person> data = FXCollections.observableArrayList();
 
     // Method to retrieve all data from the database and store it into an observable list to use in the GUI tableview.
-
-
     public ObservableList<Person> getData() {
         connectToDatabase();
         try {
@@ -39,6 +37,7 @@ public class DbConnectivityClass {
                 String department = resultSet.getString("department");
                 String majorString = resultSet.getString("major");
                 DB_GUI_Controller.Major major = null;
+                //Tests if user has chosen a value, otherwise Undecided
                 try {
                     major = DB_GUI_Controller.Major.valueOf(majorString.toUpperCase());
                 }catch(Exception e){
@@ -56,6 +55,8 @@ public class DbConnectivityClass {
         return data;
     }
 
+    //This is for registering a new account. It would've made a bit more sense to make it named
+    //registerAccount(), but it works just the same
     public void registerUser(UserSession s) {
         try {
             Connection conn = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD);
@@ -84,6 +85,7 @@ public class DbConnectivityClass {
         }
     }
 
+    //Connects to the database to insert/retrieve/delete/etc data
     public boolean connectToDatabase() {
         boolean hasRegistredUsers = false;
 
@@ -129,6 +131,7 @@ public class DbConnectivityClass {
         return hasRegistredUsers;
     }
 
+    //The ability to look up a user by their last name
     public void queryUserByLastName(String name) {
         connectToDatabase();
         try {
@@ -156,6 +159,7 @@ public class DbConnectivityClass {
         }
     }
 
+    //This gets an account from the inputed username.
     public UserSession getAccount(String username) {
         connectToDatabase();
         try {
@@ -177,7 +181,7 @@ public class DbConnectivityClass {
             throw new RuntimeException(e);
         }
     }
-
+// Lists all users in the database
         public void listAllUsers() {
             connectToDatabase();
             try {
@@ -206,6 +210,8 @@ public class DbConnectivityClass {
             }
         }
 
+       //Inserts a new user (Person) into the database. Again, with major, it sets it as the ComboBox value,
+        // And if there isnt a usable one, it just sets to Undecided
         public void insertUser(Person person) {
             connectToDatabase();
             try {
@@ -232,7 +238,7 @@ public class DbConnectivityClass {
                 e.printStackTrace();
             }
         }
-
+// Edits a user. Again, similarly to the above method, sets the major to Undecided if there isn't one chosen.
         public void editUser(int id, Person p) {
             connectToDatabase();
             try {
@@ -254,7 +260,7 @@ public class DbConnectivityClass {
                 throw new RuntimeException(e);
             }
         }
-
+        //Deletes a user where the ID is a certain number. User is chosen from selection in the TableView
         public void deleteRecord(Person person) {
             int id = person.getId();
             connectToDatabase();

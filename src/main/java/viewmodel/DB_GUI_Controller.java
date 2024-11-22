@@ -20,6 +20,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
@@ -42,7 +43,7 @@ public class DB_GUI_Controller implements Initializable {
 
     String filename;
     @FXML
-    MenuItem importCSVbutton, exportCSVbutton;
+    MenuItem importCSVbutton, exportCSVbutton,editItem, clearItem, deleteItem;
     @FXML
     private ComboBox<Major> majorDropDown;
     @FXML
@@ -73,9 +74,28 @@ public class DB_GUI_Controller implements Initializable {
     private Pattern majorRegex = Pattern.compile("^([a-zA-Z]{2,25})");
 
     @Override
+    // Initalize adds all the items to the ComboBox, the keywords you can enter for specific commands (Such as
+    // Deleting and editing items), and validates that all the Text entered into the TextFields follow the RegEx.
     public void initialize(URL url, ResourceBundle resourceBundle) {
         majorDropDown.getItems().addAll(Major.values());
         majorDropDown.setValue(Major.Undecided);
+        deleteItem.setOnAction(e->deleteRecord());
+        clearItem.setOnAction(e->clearForm());
+        editItem.setOnAction(e->editRecord());
+        tv.setOnKeyPressed(e->{
+                if(e.isControlDown()&&e.getCode()== KeyCode.D) {
+                    deleteRecord();
+                }});
+        tv.setOnKeyPressed(e->{
+            if (e.isControlDown() && e.getCode() == KeyCode.E) {
+                editRecord();
+            }
+        });
+        tv.setOnKeyPressed(e->{
+            if (e.isControlDown() && e.getCode() == KeyCode.R) {
+                clearForm();
+            }
+        });
         isValid = new BooleanProperty[4];
         for (int i = 0; i < isValid.length; i++) {
             isValid[i] = new SimpleBooleanProperty(false);
@@ -110,6 +130,8 @@ public class DB_GUI_Controller implements Initializable {
 
     }
 
+
+    //RegEx validation
     private void validateText(TextField text, Pattern regex, String invalid, BooleanProperty[] b, int index) {
         text.focusedProperty().addListener((observable, notFocused, nowFocused) -> {
             if (!nowFocused) {
@@ -125,6 +147,8 @@ public class DB_GUI_Controller implements Initializable {
 
     }
 
+    //Exports the CSV file. Gets the data from getData() and writes to the file that is going to be named/saved
+    //Onto a specific location.
     @FXML
     protected void onExportCSV() {
         FileChooser fileChooser = new FileChooser();
@@ -137,7 +161,8 @@ public class DB_GUI_Controller implements Initializable {
 
         if (f != null) {
             try {
-                writeFile(f.getAbsolutePath(), getData());
+                String[] data = getData();
+                writeFile(f.getAbsolutePath(), data);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -145,6 +170,8 @@ public class DB_GUI_Controller implements Initializable {
         }
     }
     @FXML
+
+    //Imports CSV files into the TableView
     protected void onImportCSV() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open CSV File");
@@ -178,29 +205,34 @@ public class DB_GUI_Controller implements Initializable {
     // it is called writeFile
     public void writeFile(String file, String[] data) throws IOException {
         try {
-            PrintWriter writer;
-            writer = new PrintWriter(file);
-            writer.println(Arrays.toString(data));
-            writer.close();
+            PrintWriter writer = new PrintWriter(file);
+            for(String row:data){
+                writer.println(row);
+            }
         } catch (IOException ex) {
             System.out.println("Error writing to file '" + file + "'");
         }
 
     }
-    //ths method return the data to be written in a file
+    //Returns the data that will be written into the file
     public String[] getData() {
-        StringBuilder tvData = new StringBuilder();
+        List<String> tvData = new ArrayList<>();
+
         for (Person person : data) { // For each person in the TableView
-            tvData.append(person.getFirstName()).append(",")
+            StringBuilder stuff = new StringBuilder();
+            stuff.append(person.getFirstName()).append(",")
                     .append(person.getLastName()).append(",")
                     .append(person.getDepartment()).append(",")
                     .append(person.getMajor().toString()).append(",")
                     .append(person.getEmail()).append(",")
                     .append(person.getImageURL()).append(",");
+                    tvData.add(stuff.toString());
         }
-        return tvData.toString().split("");
+        System.out.println(tvData);
+        return tvData.toArray(new String[0]);
     }
 
+    // Adds a new record to the TableView and Azure Database
     @FXML
     protected void addNewRecord() {
 
@@ -220,16 +252,17 @@ public class DB_GUI_Controller implements Initializable {
 
     }
 
+    // Clears the form on the right so you can start from scratch
     @FXML
     protected void clearForm() {
         first_name.setText("");
         last_name.setText("");
         department.setText("");
-        // major.setText("");
         email.setText("");
         imageURL.setText("");
     }
 
+    // Logs you out of the database so you can either create a new account or log into an existing one
     @FXML
     protected void logOut(ActionEvent actionEvent) {
         try {
@@ -244,11 +277,13 @@ public class DB_GUI_Controller implements Initializable {
         }
     }
 
+    //Closes the program
     @FXML
     protected void closeApplication() {
         System.exit(0);
     }
 
+    //Displays the About, which explains the program and certain functionalities
     @FXML
     protected void displayAbout() {
         try {
@@ -262,6 +297,7 @@ public class DB_GUI_Controller implements Initializable {
         }
     }
 
+    //Edits the selected record
     @FXML
     protected void editRecord() {
         Major selectedMajor = majorDropDown.getValue();
@@ -275,6 +311,7 @@ public class DB_GUI_Controller implements Initializable {
         tv.getSelectionModel().select(index);
     }
 
+    //Deletes the selected record
     @FXML
     protected void deleteRecord() {
         Person p = tv.getSelectionModel().getSelectedItem();
@@ -284,6 +321,8 @@ public class DB_GUI_Controller implements Initializable {
         tv.getSelectionModel().select(index);
     }
 
+    //Shows the image that is currently uploaded to a specific User. Sets the image by getting the URL from the
+    //StorageServer (Utilizes a SAS key so that you can actually view it).
     @FXML
     protected void showImage() {
         File file = (new FileChooser()).showOpenDialog(img_view.getScene().getWindow());
@@ -307,7 +346,8 @@ public class DB_GUI_Controller implements Initializable {
         showSomeone();
     }
 
-
+//When an item from the TableView is selected, this is the method that identifies it. The reasoning for the "defaultImage" is because
+    //if you create a new user, the program freaks out and doesn't recognize it as an "Image". So I had to include that.
     @FXML
     protected void selectedItemTV(MouseEvent mouseEvent) {
         String defaultImage = "/images/profile.png";
@@ -334,7 +374,7 @@ public class DB_GUI_Controller implements Initializable {
         }
     }
 
-
+// Light theme for the GUI
     public void lightTheme(ActionEvent actionEvent) {
         try {
             Scene scene = menuBar.getScene();
@@ -350,6 +390,7 @@ public class DB_GUI_Controller implements Initializable {
         }
     }
 
+   // Dark theme for the GUI
     public void darkTheme(ActionEvent actionEvent) {
         try {
             Stage stage = (Stage) menuBar.getScene().getWindow();
@@ -361,6 +402,7 @@ public class DB_GUI_Controller implements Initializable {
         }
     }
 
+//For if you want to upload a new user VIA the menu
     public void showSomeone() {
         Dialog<Results> dialog = new Dialog<>();
         dialog.setTitle("New User");
@@ -390,6 +432,8 @@ public class DB_GUI_Controller implements Initializable {
         });
     }
 
+    //For creating an upload task. This is a thread. Utilizes a SAS key so that we can view the images without the
+    //Database blocking access.
     private Task<Void> createUploadTask(File file, ProgressBar progressBar, Person selectedPerson) {
         return new Task<>() {
             @Override
@@ -412,6 +456,8 @@ public class DB_GUI_Controller implements Initializable {
                         // Calculate and update progress as a percentage
                         int progress = (int) ((double) uploadedBytes / fileSize * 100);
                         updateProgress(progress, 100);
+                        wait(100);
+                        updateProgress(progress, 0);
 
                     }
 
@@ -424,7 +470,6 @@ public class DB_GUI_Controller implements Initializable {
                 String fileURL = (blobClient.getContainerClient().getBlobClient(blobName).getBlobUrl() + "?" + SAS);
                 if (selectedPerson != null) {
                     selectedPerson.setImageURL(fileURL);
-                    System.out.println(selectedPerson.getImageURL() + " This is the image URL from createUploadTask");
                     imageURL.setText(fileURL);
                     img_view.setImage(new Image(fileURL));
                     System.out.println(selectedPerson);
@@ -438,14 +483,14 @@ public class DB_GUI_Controller implements Initializable {
         };
     }
 
-
+// Enum class for the ComboBox values
     public static enum Major {
         Undecided, BUS, CS, CPIS, PSY, MTH, EGL, ECO, SOC, IT, SE
 
 
         }
 
-
+//Compiles the results for showSomeone() method
     private static class Results {
 
         String fname;
